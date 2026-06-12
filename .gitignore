@@ -25,7 +25,8 @@ wheels/
 .DS_Store
 *.sqlite3
 *.db
-staticfiles/
+staticfiles/*
+!staticfiles/.gitkeep
 media/
 .env
 .venv
