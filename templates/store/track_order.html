@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Order - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="bg-primary text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl md:text-4xl font-bold mb-4">Track Your Order</h1>
+        <p class="text-gray-300">Enter your Order ID to check the status</p>
+    </div>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Search Form -->
+    <div class="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <form id="track-form" class="flex flex-col sm:flex-row gap-4">
+            <input type="text" name="order_id" value="{{ searched_order_id|default:'' }}" placeholder="Enter Order ID (e.g., ABC12345)" required class="flex-1 px-6 py-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent text-lg">
+            <button type="submit" class="bg-accent text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-600 transition-colors">
+                Track Order
+            </button>
+        </form>
+    </div>
+    
+    <!-- Order Result -->
+    {% if order %}
+    <div class="bg-white rounded-2xl shadow-lg p-8 animate-fade-in">
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl font-bold text-gray-900">Order #{{ order.order_id }}</h2>
+                <p class="text-gray-500">Placed on {{ order.created_at|date:"F d, Y" }}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-3xl font-bold text-accent">₹{{ order.total_amount }}</p>
+                <p class="text-sm text-gray-500">Total Amount</p>
+            </div>
+        </div>
+        
+        <!-- Status Timeline -->
+        <div class="mb-8">
+            <h3 class="text-lg font-semibold mb-6">Order Status</h3>
+            <div class="relative">
+                <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200"></div>
+                
+                <div class="space-y-8">
+                    <!-- Pending -->
+                    <div class="relative flex items-start pl-12">
+                        <div class="absolute left-0 w-8 h-8 rounded-full {% if order.status == 'pending' %}bg-accent{% else %}bg-green-500{% endif %} flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                        </div>
+                        <div>
+                            <p class="font-semibold {% if order.status == 'pending' %}text-accent{% else %}text-green-600{% endif %}">Order Placed</p>
+                            <p class="text-sm text-gray-500">{{ order.created_at|date:"F d, Y g:i A" }}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Confirmed -->
+                    <div class="relative flex items-start pl-12">
+                        <div class="absolute left-0 w-8 h-8 rounded-full {% if order.status in 'confirmed processing shipped delivered' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center">
+                            {% if order.status in 'confirmed processing shipped delivered' %}
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-semibold {% if order.status in 'confirmed processing shipped delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Order Confirmed</p>
+                            <p class="text-sm text-gray-500">Your order has been confirmed</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Processing -->
+                    <div class="relative flex items-start pl-12">
+                        <div class="absolute left-0 w-8 h-8 rounded-full {% if order.status in 'processing shipped delivered' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center">
+                            {% if order.status in 'processing shipped delivered' %}
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-semibold {% if order.status in 'processing shipped delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Processing</p>
+                            <p class="text-sm text-gray-500">Your order is being prepared</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Shipped -->
+                    <div class="relative flex items-start pl-12">
+                        <div class="absolute left-0 w-8 h-8 rounded-full {% if order.status in 'shipped delivered' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center">
+                            {% if order.status in 'shipped delivered' %}
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-semibold {% if order.status in 'shipped delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Shipped</p>
+                            <p class="text-sm text-gray-500">{% if order.tracking_number %}Tracking: {{ order.tracking_number }} via {{ order.courier_name }}{% else %}Awaiting shipment{% endif %}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Delivered -->
+                    <div class="relative flex items-start pl-12">
+                        <div class="absolute left-0 w-8 h-8 rounded-full {% if order.status == 'delivered' %}bg-green-500{% else %}bg-gray-300{% endif %} flex items-center justify-center">
+                            {% if order.status == 'delivered' %}
+                            <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-semibold {% if order.status == 'delivered' %}text-green-600{% else %}text-gray-400{% endif %}">Delivered</p>
+                            <p class="text-sm text-gray-500">Order successfully delivered</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div class="border-t pt-8">
+            <h3 class="text-lg font-semibold mb-4">Order Items</h3>
+            <div class="space-y-4">
+                {% for item in order.items.all %}
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+                    <div>
+                        <p class="font-semibold">{{ item.product_name }}</p>
+                        <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
+                    </div>
+                    <p class="font-bold text-accent">₹{{ item.total }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Customer Details -->
+        <div class="border-t pt-8 mt-8">
+            <h3 class="text-lg font-semibold mb-4">Delivery Details</h3>
+            <div class="bg-gray-50 rounded-xl p-6">
+                <p class="font-semibold text-lg">{{ order.customer_name }}</p>
+                <p class="text-gray-600">{{ order.customer_address }}</p>
+                {% if order.customer_city %}
+                <p class="text-gray-600">{{ order.customer_city }}, {{ order.customer_state }} - {{ order.customer_pincode }}</p>
+                {% endif %}
+                <p class="text-gray-600 mt-2">📞 {{ order.customer_phone }}</p>
+            </div>
+        </div>
+    </div>
+    {% elif searched_order_id %}
+    <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-900 mb-2">Order Not Found</h3>
+        <p class="text-gray-600">No order found with ID "{{ searched_order_id }}". Please check the order ID and try again.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('track-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const params = new URLSearchParams(formData);
+    window.location.href = '{% url "track_order" %}?' + params.toString();
+});
+</script>
+{% endblock %}

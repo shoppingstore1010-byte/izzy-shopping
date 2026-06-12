@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Placed Successfully - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 py-16">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Success Message -->
+        <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-12 text-center animate-fade-in">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Order Placed Successfully!</h1>
+            <p class="text-xl text-gray-600 mb-8">Thank you for your order. We'll contact you shortly to confirm your delivery.</p>
+            
+            <div class="bg-gray-50 rounded-2xl p-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Order ID</p>
+                        <p class="text-xl font-bold text-primary">{{ order.order_id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Total Amount</p>
+                        <p class="text-xl font-bold text-accent">₹{{ order.total_amount }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Customer Name</p>
+                        <p class="font-semibold">{{ order.customer_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500 mb-1">Mobile Number</p>
+                        <p class="font-semibold">{{ order.customer_phone }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <h3 class="text-lg font-semibold text-gray-900">Order Items</h3>
+                {% for item in order.items.all %}
+                <div class="flex items-center justify-between bg-gray-50 rounded-xl p-4">
+                    <div class="text-left">
+                        <p class="font-semibold">{{ item.product_name }}</p>
+                        <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
+                    </div>
+                    <p class="font-bold text-accent">₹{{ item.total }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="bg-blue-50 rounded-2xl p-6 mb-8">
+                <div class="flex items-start">
+                    <svg class="w-6 h-6 text-blue-500 mt-1 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="text-left">
+                        <p class="font-semibold text-blue-900 mb-1">What happens next?</p>
+                        <ul class="text-blue-800 text-sm space-y-1">
+                            <li>• We'll call you to confirm your order within 24 hours</li>
+                            <li>• Your order will be shipped via courier</li>
+                            <li>• Pay cash on delivery when you receive your package</li>
+                            <li>• Track your order using Order ID: {{ order.order_id }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{% url 'track_order' %}?order_id={{ order.order_id }}" class="bg-primary text-white px-8 py-4 rounded-xl font-semibold hover:bg-secondary transition-colors">
+                    Track Order
+                </a>
+                <a href="{% url 'home' %}" class="bg-white border-2 border-primary text-primary px-8 py-4 rounded-xl font-semibold hover:bg-gray-50 transition-colors">
+                    Continue Shopping
+                </a>
+            </div>
+        </div>
+        
+        <!-- Upsell Offers -->
+        {% if upsells %}
+        <div class="mt-12">
+            <h2 class="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-8">Special Offers Just For You!</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for upsell in upsells %}
+                <div class="bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">{{ upsell.name }}</h3>
+                    <p class="text-gray-600 text-sm mb-4">{{ upsell.description }}</p>
+                    <div class="bg-accent/20 text-accent px-3 py-1 rounded-full inline-block text-sm font-semibold mb-4">
+                        {{ upsell.discount_percentage }}% OFF
+                    </div>
+                    
+                    {% if upsell.products.first %}
+                    <div class="flex items-center mb-4">
+                        {% if upsell.products.first.first_image %}
+                        <img src="{{ upsell.products.first.first_image.image.url }}" alt="{{ upsell.products.first.name }}" class="w-16 h-16 object-cover rounded-lg">
+                        {% else %}
+                        <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
+                            <span class="text-gray-400 text-xs">No Image</span>
+                        </div>
+                        {% endif %}
+                        <div class="ml-3">
+                            <p class="font-semibold text-sm">{{ upsell.products.first.name }}</p>
+                            <p class="text-accent font-bold">₹{{ upsell.products.first.price|floatformat:0 }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <button onclick="showUpsellModal('{{ upsell.id }}', '{{ upsell.name }}')" class="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">
+                        Add to Order
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upsell Modal -->
+<div id="upsell-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full mx-4 animate-slide-up">
+        <h3 class="text-2xl font-bold mb-4">Add to Your Order</h3>
+        <p class="text-gray-600 mb-6">Add this special offer to your existing order at a discounted price!</p>
+        
+        <form id="upsell-form" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="original_order_id" value="{{ order.order_id }}">
+            <input type="hidden" name="upsell_id" id="modal-upsell-id">
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <input type="text" name="customer_name" value="{{ order.customer_name }}" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
+                <input type="tel" name="customer_phone" value="{{ order.customer_phone }}" required pattern="[0-9]{10}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Address</label>
+                <textarea name="customer_address" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">{{ order.customer_address }}</textarea>
+            </div>
+            
+            <div class="flex gap-4">
+                <button type="button" onclick="closeUpsellModal()" class="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors">
+                    Add to Order
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function showUpsellModal(upsellId, upsellName) {
+    document.getElementById('modal-upsell-id').value = upsellId;
+    document.getElementById('upsell-modal').classList.remove('hidden');
+}
+
+function closeUpsellModal() {
+    document.getElementById('upsell-modal').classList.add('hidden');
+}
+
+document.getElementById('upsell-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "add_upsell_order" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            closeUpsellModal();
+            window.location.href = data.redirect_url;
+        } else {
+            alert(data.error || 'Something went wrong');
+        }
+    })
+    .catch(error => {
+        alert('Something went wrong');
+    });
+});
+
+// Close modal on outside click
+document.getElementById('upsell-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeUpsellModal();
+    }
+});
+</script>
+{% endblock %}
