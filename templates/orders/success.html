@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Order Successful - LuxeCart{% endblock %}
+{% block meta_description %}Your LuxeCart order has been placed successfully.{% endblock %}
+{% block page_title %}Order Successful{% endblock %}
+
+{% block content %}
+{% url 'products:list' as products_url %}
+<section class="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 lg:px-8">
+  <div class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+    <svg class="h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M20 6 9 17l-5-5"/>
+    </svg>
+  </div>
+  <h1 class="mt-6 text-4xl font-semibold tracking-normal text-slate-950">Order placed successfully</h1>
+  <p class="mt-4 text-slate-600">Thank you for shopping with LuxeCart. {% if order %}Your order reference is <strong>{{ order.reference|default:order.id }}</strong>.{% endif %}</p>
+  <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+    <a href="{{ products_url|default:'/products/' }}" class="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-spruce">Continue shopping</a>
+    {% if order.get_absolute_url %}<a href="{{ order.get_absolute_url }}" class="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-spruce hover:text-spruce">View order</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

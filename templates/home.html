@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}LuxeCart - Premium Products Delivered Fast{% endblock %}
+{% block meta_description %}Discover featured products, best sellers, curated categories, and exclusive offers from LuxeCart.{% endblock %}
+{% block page_title %}LuxeCart Premium Store{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "LuxeCart",
+  "url": "{{ request.scheme }}://{{ request.get_host }}",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "{{ request.scheme }}://{{ request.get_host }}/products/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% url 'products:list' as products_url %}
+<section class="relative overflow-hidden bg-slate-950">
+  <div class="absolute inset-0 opacity-60">
+    <img src="{% static 'images/hero-commerce.jpg' %}" alt="" class="h-full w-full object-cover" onerror="this.style.display='none'">
+  </div>
+  <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/30"></div>
+  <div class="relative mx-auto grid min-h-[620px] max-w-7xl items-center px-4 py-20 sm:px-6 lg:px-8">
+    <div class="max-w-2xl text-white">
+      <p class="mb-4 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur">New season edit is live</p>
+      <h1 class="text-4xl font-semibold tracking-normal sm:text-6xl">Premium essentials for a sharper everyday cart.</h1>
+      <p class="mt-6 max-w-xl text-lg leading-8 text-slate-200">Shop curated drops, best sellers, and limited offers with a refined buying experience from discovery to checkout.</p>
+      <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+        <a href="{{ products_url|default:'/products/' }}" class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 shadow-soft transition hover:-translate-y-0.5 hover:bg-slate-100">Shop collection</a>
+        <a href="#featured" class="inline-flex items-center justify-center rounded-full border border-white/25 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10">Explore featured</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="featured" class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+  <div class="mb-8 flex items-end justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wider text-spruce">Curated picks</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Featured products</h2>
+    </div>
+    <a href="{{ products_url|default:'/products/' }}" class="hidden text-sm font-semibold text-spruce hover:text-slate-950 sm:block">View all</a>
+  </div>
+  {% if featured_products %}
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {% for product in featured_products %}
+        <article class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lift">
+          <a href="{{ product.get_absolute_url|default:'#' }}" class="block aspect-[4/5] overflow-hidden bg-slate-100">
+            {% if product.image %}
+              <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+            {% elif product.image_url %}
+              <img src="{{ product.image_url }}" alt="{{ product.name }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105">
+            {% else %}
+              <div class="grid h-full place-items-center text-sm text-slate-400">No image</div>
+            {% endif %}
+          </a>
+          <div class="p-4">
+            <div class="mb-3 flex flex-wrap gap-2">
+              {% if product.discount_percentage %}<span class="rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rosewood">-{{ product.discount_percentage }}%</span>{% endif %}
+              <span class="rounded-full px-2.5 py-1 text-xs font-semibold {% if product.in_stock %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">{% if product.in_stock %}In stock{% else %}Sold out{% endif %}</span>
+            </div>
+            <h3 class="line-clamp-2 min-h-12 font-semibold text-slate-950"><a href="{{ product.get_absolute_url|default:'#' }}">{{ product.name }}</a></h3>
+            <div class="mt-3 flex items-center justify-between">
+              <p class="text-lg font-bold text-slate-950">{{ currency|default:'Rs.' }} {{ product.price }}</p>
+              {% if product.old_price %}<p class="text-sm text-slate-400 line-through">{{ currency|default:'Rs.' }} {{ product.old_price }}</p>{% endif %}
+            </div>
+            <form action="{{ product.add_to_cart_url|default:'#' }}" method="post" class="mt-4">
+              {% csrf_token %}
+              <button data-loading type="submit" class="w-full rounded-full bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-spruce disabled:cursor-wait disabled:opacity-70">Add to cart</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center">
+      <h3 class="text-lg font-semibold">Featured products are coming soon.</h3>
+      <p class="mt-2 text-sm text-slate-500">Add products to the featured collection to populate this section.</p>
+    </div>
+  {% endif %}
+</section>
+
+<section class="bg-mist py-16">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mb-8">
+      <p class="text-sm font-semibold uppercase tracking-wider text-rosewood">Customer favorites</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Best sellers</h2>
+    </div>
+    {% if best_sellers %}
+      <div class="grid gap-6 md:grid-cols-3">
+        {% for product in best_sellers %}
+          <a href="{{ product.get_absolute_url|default:'#' }}" class="group flex gap-4 rounded-2xl bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+            <div class="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100">
+              {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% elif product.image_url %}<img src="{{ product.image_url }}" alt="{{ product.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% endif %}
+            </div>
+            <div>
+              <h3 class="font-semibold text-slate-950">{{ product.name }}</h3>
+              <p class="mt-2 text-sm text-slate-500">{{ product.short_description|default:'Premium pick from our current collection.' }}</p>
+              <p class="mt-3 font-bold">{{ currency|default:'Rs.' }} {{ product.price }}</p>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="rounded-3xl bg-white p-10 text-center shadow-sm">Best sellers will appear here once products are available.</div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+  <div class="overflow-hidden rounded-[2rem] bg-slate-950 text-white shadow-lift">
+    <div class="grid items-center gap-8 p-8 md:grid-cols-2 md:p-12">
+      <div>
+        <p class="text-sm font-semibold uppercase tracking-wider text-amber-300">Limited offer</p>
+        <h2 class="mt-3 text-3xl font-semibold tracking-normal">Free delivery on curated bundles this week.</h2>
+        <p class="mt-4 text-slate-300">Build a cart from selected categories and get premium packaging with islandwide delivery.</p>
+      </div>
+      <div class="flex md:justify-end">
+        <a href="{{ products_url|default:'/products/' }}?tag=offer" class="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Shop offers</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+  <div class="mb-8">
+    <p class="text-sm font-semibold uppercase tracking-wider text-spruce">Browse by mood</p>
+    <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Categories</h2>
+  </div>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    {% for category in categories %}
+      <a href="{{ category.get_absolute_url|default:'#' }}" class="group overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition hover:-translate-y-1 hover:shadow-soft">
+        <div class="mb-5 aspect-[16/10] overflow-hidden rounded-xl bg-slate-100">
+          {% if category.image %}<img src="{{ category.image.url }}" alt="{{ category.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% elif category.image_url %}<img src="{{ category.image_url }}" alt="{{ category.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% endif %}
+        </div>
+        <h3 class="font-semibold text-slate-950">{{ category.name }}</h3>
+        <p class="mt-1 text-sm text-slate-500">{{ category.product_count|default:'Explore' }} products</p>
+      </a>
+    {% empty %}
+      <div class="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 sm:col-span-2 lg:col-span-4">Categories will appear here.</div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="bg-slate-50 py-16">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="mb-8 text-center">
+      <p class="text-sm font-semibold uppercase tracking-wider text-rosewood">Reviews</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Customers shop with confidence</h2>
+    </div>
+    <div class="grid gap-6 md:grid-cols-3">
+      {% for testimonial in testimonials %}
+        <figure class="rounded-2xl bg-white p-6 shadow-sm">
+          <blockquote class="text-sm leading-6 text-slate-600">"{{ testimonial.quote }}"</blockquote>
+          <figcaption class="mt-5 font-semibold text-slate-950">{{ testimonial.name }}</figcaption>
+        </figure>
+      {% empty %}
+        <figure class="rounded-2xl bg-white p-6 shadow-sm">
+          <blockquote class="text-sm leading-6 text-slate-600">"Fast checkout, beautiful packaging, and exactly what I ordered."</blockquote>
+          <figcaption class="mt-5 font-semibold text-slate-950">Verified customer</figcaption>
+        </figure>
+        <figure class="rounded-2xl bg-white p-6 shadow-sm">
+          <blockquote class="text-sm leading-6 text-slate-600">"The store feels polished and the delivery updates were clear."</blockquote>
+          <figcaption class="mt-5 font-semibold text-slate-950">Repeat buyer</figcaption>
+        </figure>
+        <figure class="rounded-2xl bg-white p-6 shadow-sm">
+          <blockquote class="text-sm leading-6 text-slate-600">"Great selection, responsive support, and excellent product quality."</blockquote>
+          <figcaption class="mt-5 font-semibold text-slate-950">Happy shopper</figcaption>
+        </figure>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="newsletter" class="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
+  <p class="text-sm font-semibold uppercase tracking-wider text-spruce">Stay in the loop</p>
+  <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Get new drops and private offers first.</h2>
+  <form action="{{ newsletter_url|default:'#' }}" method="post" class="mx-auto mt-8 flex max-w-xl flex-col gap-3 rounded-full border border-slate-200 bg-white p-2 shadow-soft sm:flex-row">
+    {% csrf_token %}
+    <input type="email" name="email" required placeholder="Email address" class="min-h-12 flex-1 rounded-full px-5 outline-none">
+    <button data-loading class="rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-spruce">Subscribe</button>
+  </form>
+</section>
+{% endblock %}

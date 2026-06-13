@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - LuxeCart{% endblock %}
+{% block meta_description %}Enter customer and delivery details to place your LuxeCart order securely.{% endblock %}
+{% block page_title %}Checkout{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+  <h1 class="text-4xl font-semibold tracking-normal text-slate-950">Checkout</h1>
+  <form method="post" action="{{ checkout_action|default:'#' }}" class="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
+    {% csrf_token %}
+    <div class="grid gap-6">
+      <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-slate-950">Customer information</h2>
+        <div class="mt-5 grid gap-4 sm:grid-cols-2">
+          <label class="grid gap-2 text-sm font-medium text-slate-700">First name<input name="first_name" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+          <label class="grid gap-2 text-sm font-medium text-slate-700">Last name<input name="last_name" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+          <label class="grid gap-2 text-sm font-medium text-slate-700">Email<input type="email" name="email" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+          <label class="grid gap-2 text-sm font-medium text-slate-700">Phone<input name="phone" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+        </div>
+      </section>
+
+      <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 class="text-xl font-semibold text-slate-950">Delivery details</h2>
+        <div class="mt-5 grid gap-4">
+          <label class="grid gap-2 text-sm font-medium text-slate-700">Address<input name="address" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+          <div class="grid gap-4 sm:grid-cols-3">
+            <label class="grid gap-2 text-sm font-medium text-slate-700">City<input name="city" required class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+            <label class="grid gap-2 text-sm font-medium text-slate-700">Postal code<input name="postal_code" class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+            <label class="grid gap-2 text-sm font-medium text-slate-700">Country<input name="country" value="{{ default_country|default:'Sri Lanka' }}" class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></label>
+          </div>
+          <label class="grid gap-2 text-sm font-medium text-slate-700">Order notes<textarea name="notes" rows="4" class="rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-spruce focus:ring-4 focus:ring-spruce/10"></textarea></label>
+        </div>
+      </section>
+    </div>
+
+    <aside class="h-fit rounded-3xl bg-slate-950 p-6 text-white shadow-lift">
+      <h2 class="text-xl font-semibold">Order summary</h2>
+      <div class="mt-6 grid gap-4">
+        {% for item in cart_items %}
+          <div class="flex justify-between gap-4 text-sm text-slate-300">
+            <span>{{ item.product.name }} x {{ item.quantity }}</span>
+            <span>{{ currency|default:'Rs.' }} {{ item.total|default:item.subtotal }}</span>
+          </div>
+        {% empty %}
+          <p class="text-sm text-slate-300">Your order items will appear here.</p>
+        {% endfor %}
+        <div class="flex justify-between border-t border-white/10 pt-4 text-sm text-slate-300"><span>Delivery</span><span>{{ delivery_total|default:'Calculated soon' }}</span></div>
+        <div class="flex justify-between text-lg font-bold"><span>Total</span><span>{{ currency|default:'Rs.' }} {{ cart_total|default:'0.00' }}</span></div>
+      </div>
+      <button data-loading type="submit" class="mt-6 w-full rounded-full bg-white px-6 py-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Place order</button>
+    </aside>
+  </form>
+</section>
+{% endblock %}

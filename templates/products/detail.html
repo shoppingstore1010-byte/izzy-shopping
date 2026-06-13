@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name|default:'Product Detail' }} - LuxeCart{% endblock %}
+{% block meta_description %}{{ product.meta_description|default:product.short_description|default:'View product details, price, availability, and related products.' }}{% endblock %}
+{% block page_title %}{{ product.name|default:'Product Detail' }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_image %}
+  {% if product.image %}<meta property="og:image" content="{{ product.image.url }}">{% elif product.image_url %}<meta property="og:image" content="{{ product.image_url }}">{% endif %}
+{% endblock %}
+
+{% block structured_data %}
+{% if product %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "description": "{{ product.short_description|default:product.description|striptags|truncatechars:150|escapejs }}",
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ product.price }}",
+    "priceCurrency": "{{ price_currency|default:'LKR' }}",
+    "availability": "https://schema.org/{% if product.in_stock %}InStock{% else %}OutOfStock{% endif %}"
+  }
+}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+{% url 'products:list' as products_url %}
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+  <nav class="mb-8 text-sm text-slate-500" aria-label="Breadcrumb">
+    <a href="/" class="hover:text-spruce">Home</a>
+    <span class="mx-2">/</span>
+    <a href="{{ products_url|default:'/products/' }}" class="hover:text-spruce">Products</a>
+    <span class="mx-2">/</span>
+    <span class="text-slate-900">{{ product.name|default:'Product' }}</span>
+  </nav>
+
+  <div class="grid gap-10 lg:grid-cols-2">
+    <div>
+      <div class="aspect-square overflow-hidden rounded-3xl bg-slate-100 shadow-soft">
+        {% if product.image %}
+          <img data-gallery-main src="{{ product.image.url }}" alt="{{ product.name }}" class="h-full w-full object-cover">
+        {% elif product.image_url %}
+          <img data-gallery-main src="{{ product.image_url }}" alt="{{ product.name }}" class="h-full w-full object-cover">
+        {% else %}
+          <div class="grid h-full place-items-center text-slate-400">No image available</div>
+        {% endif %}
+      </div>
+      <div class="mt-4 grid grid-cols-4 gap-3">
+        {% if product.image %}
+          <button type="button" data-gallery-thumb data-src="{{ product.image.url }}" class="aspect-square overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-spruce">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="h-full w-full object-cover">
+          </button>
+        {% elif product.image_url %}
+          <button type="button" data-gallery-thumb data-src="{{ product.image_url }}" class="aspect-square overflow-hidden rounded-2xl bg-slate-100 ring-2 ring-spruce">
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="h-full w-full object-cover">
+          </button>
+        {% endif %}
+        {% for image in product.images.all %}
+          <button type="button" data-gallery-thumb data-src="{{ image.image.url }}" class="aspect-square overflow-hidden rounded-2xl bg-slate-100 transition hover:ring-2 hover:ring-spruce">
+            <img src="{{ image.image.url }}" alt="{{ product.name }} gallery image" class="h-full w-full object-cover">
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="lg:pt-8">
+      <div class="mb-4 flex flex-wrap gap-2">
+        {% if product.discount_percentage %}<span class="rounded-full bg-rose-50 px-3 py-1 text-sm font-semibold text-rosewood">Save {{ product.discount_percentage }}%</span>{% endif %}
+        <span class="rounded-full px-3 py-1 text-sm font-semibold {% if product.in_stock %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">{% if product.in_stock %}In stock{% else %}Sold out{% endif %}</span>
+      </div>
+      <h1 class="text-4xl font-semibold tracking-normal text-slate-950">{{ product.name|default:'Product name' }}</h1>
+      <p class="mt-4 text-slate-600">{{ product.short_description|default:'A carefully selected product from the premium collection.' }}</p>
+
+      <div class="mt-6 flex items-end gap-4 border-y border-slate-200 py-6">
+        <p class="text-3xl font-bold text-slate-950">{{ currency|default:'Rs.' }} {{ product.price|default:'0.00' }}</p>
+        {% if product.old_price %}<p class="pb-1 text-lg text-slate-400 line-through">{{ currency|default:'Rs.' }} {{ product.old_price }}</p>{% endif %}
+      </div>
+
+      <form action="{{ product.add_to_cart_url|default:'#' }}" method="post" class="mt-6">
+        {% csrf_token %}
+        <div class="mb-5">
+          <label class="mb-2 block text-sm font-semibold text-slate-700">Quantity</label>
+          <div data-qty class="inline-flex h-12 overflow-hidden rounded-full border border-slate-200">
+            <button type="button" data-qty-step="down" class="w-12 text-lg transition hover:bg-slate-50">-</button>
+            <input name="quantity" type="number" min="1" max="{{ product.stock|default:99 }}" value="1" class="w-16 border-x border-slate-200 text-center outline-none">
+            <button type="button" data-qty-step="up" class="w-12 text-lg transition hover:bg-slate-50">+</button>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <button data-loading type="submit" {% if not product.in_stock %}disabled{% endif %} class="rounded-full bg-slate-950 px-6 py-4 text-sm font-semibold text-white transition hover:bg-spruce disabled:cursor-not-allowed disabled:bg-slate-300">Add to cart</button>
+          <a href="https://wa.me/{{ whatsapp_number|default:'94770000000' }}?text={{ 'Hi, I need details about '|add:product.name|urlencode }}" class="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-100">WhatsApp inquiry</a>
+        </div>
+      </form>
+
+      <div class="mt-8 rounded-3xl bg-slate-50 p-6">
+        <h2 class="font-semibold text-slate-950">Product details</h2>
+        <div class="prose prose-sm mt-3 max-w-none text-slate-600">
+          {{ product.description|default:'Detailed product information will appear here.'|linebreaks }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+  <div class="mb-8 flex items-end justify-between">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-wider text-spruce">You may also like</p>
+      <h2 class="mt-2 text-3xl font-semibold tracking-normal text-slate-950">Related products</h2>
+    </div>
+  </div>
+  {% if related_products %}
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {% for item in related_products %}
+        <a href="{{ item.get_absolute_url|default:'#' }}" class="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-soft">
+          <div class="aspect-[4/5] overflow-hidden bg-slate-100">
+            {% if item.image %}<img src="{{ item.image.url }}" alt="{{ item.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% elif item.image_url %}<img src="{{ item.image_url }}" alt="{{ item.name }}" class="h-full w-full object-cover transition group-hover:scale-105">{% endif %}
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-slate-950">{{ item.name }}</h3>
+            <p class="mt-2 font-bold">{{ currency|default:'Rs.' }} {{ item.price }}</p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-10 text-center text-slate-500">Related products will appear here.</div>
+  {% endif %}
+</section>
+{% endblock %}

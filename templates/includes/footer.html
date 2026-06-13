@@ -1,0 +1,41 @@
+{% url 'home' as home_url %}
+{% url 'products:list' as products_url %}
+<footer class="mt-20 border-t border-slate-200 bg-slate-950 text-white">
+  <div class="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4 lg:px-8">
+    <div>
+      <div class="mb-4 flex items-center gap-3">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-white text-slate-950">LC</span>
+        <span class="text-lg font-semibold">LuxeCart</span>
+      </div>
+      <p class="max-w-sm text-sm leading-6 text-slate-300">A premium commerce experience for carefully selected products, secure checkout, and quick delivery.</p>
+    </div>
+    <div>
+      <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-400">Quick links</h3>
+      <div class="grid gap-3 text-sm text-slate-300">
+        <a class="transition hover:text-white" href="{{ home_url|default:'/' }}">Home</a>
+        <a class="transition hover:text-white" href="{{ products_url|default:'/products/' }}">All products</a>
+        <a class="transition hover:text-white" href="{{ products_url|default:'/products/' }}?sort=best">Best sellers</a>
+        <a class="transition hover:text-white" href="#newsletter">Newsletter</a>
+      </div>
+    </div>
+    <div>
+      <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-400">Contact</h3>
+      <div class="grid gap-3 text-sm text-slate-300">
+        <p>{{ company_address|default:'Colombo, Sri Lanka' }}</p>
+        <a class="transition hover:text-white" href="mailto:{{ company_email|default:'hello@example.com' }}">{{ company_email|default:'hello@example.com' }}</a>
+        <a class="transition hover:text-white" href="tel:{{ company_phone|default:'+94770000000' }}">{{ company_phone|default:'+94 77 000 0000' }}</a>
+      </div>
+    </div>
+    <div>
+      <h3 class="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-400">Social</h3>
+      <div class="flex gap-3">
+        <a class="grid h-10 w-10 place-items-center rounded-full bg-white/10 transition hover:bg-white hover:text-slate-950" href="{{ facebook_url|default:'#' }}" aria-label="Facebook">f</a>
+        <a class="grid h-10 w-10 place-items-center rounded-full bg-white/10 transition hover:bg-white hover:text-slate-950" href="{{ instagram_url|default:'#' }}" aria-label="Instagram">ig</a>
+        <a class="grid h-10 w-10 place-items-center rounded-full bg-white/10 transition hover:bg-white hover:text-slate-950" href="{{ twitter_url|default:'#' }}" aria-label="X">x</a>
+      </div>
+    </div>
+  </div>
+  <div class="border-t border-white/10 py-5">
+    <p class="mx-auto max-w-7xl px-4 text-sm text-slate-400 sm:px-6 lg:px-8">&copy; {% now "Y" %} LuxeCart. All rights reserved.</p>
+  </div>
+</footer>

@@ -1,0 +1,56 @@
+{% url 'home' as home_url %}
+{% url 'products:list' as products_url %}
+{% url 'cart:cart' as cart_url %}
+<header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+  <nav class="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8" aria-label="Main navigation">
+    <a href="{{ home_url|default:'/' }}" class="flex items-center gap-3 font-semibold tracking-wide text-slate-950">
+      <span class="grid h-10 w-10 place-items-center rounded-xl bg-slate-950 text-white shadow-soft">LC</span>
+      <span class="text-lg">LuxeCart</span>
+    </a>
+
+    <div class="hidden flex-1 items-center justify-center gap-8 lg:flex">
+      <a class="text-sm font-medium text-slate-700 transition hover:text-spruce" href="{{ home_url|default:'/' }}">Home</a>
+      <a class="text-sm font-medium text-slate-700 transition hover:text-spruce" href="{{ products_url|default:'/products/' }}">Shop</a>
+      <a class="text-sm font-medium text-slate-700 transition hover:text-spruce" href="{{ products_url|default:'/products/' }}?sort=best">Best Sellers</a>
+      <a class="text-sm font-medium text-slate-700 transition hover:text-spruce" href="#newsletter">Offers</a>
+    </div>
+
+    <form action="{{ products_url|default:'/products/' }}" method="get" class="hidden min-w-72 max-w-sm flex-1 items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 transition focus-within:border-spruce focus-within:bg-white focus-within:ring-4 focus-within:ring-spruce/10 md:flex">
+      <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input name="q" value="{{ request.GET.q }}" class="w-full bg-transparent px-3 text-sm outline-none placeholder:text-slate-400" placeholder="Search products">
+    </form>
+
+    <div class="ml-auto flex items-center gap-2">
+      <a href="{{ wishlist_url|default:'#' }}" class="grid h-10 w-10 place-items-center rounded-full text-slate-700 transition hover:bg-slate-100 hover:text-rosewood" aria-label="Wishlist">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/>
+        </svg>
+      </a>
+      <a href="{{ cart_url|default:'/cart/' }}" class="relative grid h-10 w-10 place-items-center rounded-full text-slate-700 transition hover:bg-slate-100 hover:text-spruce" aria-label="Cart">
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M6 6h15l-1.5 9h-12z"></path><path d="M6 6 5 2H2"></path><circle cx="9" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle>
+        </svg>
+        <span class="absolute -right-1 -top-1 min-w-5 rounded-full bg-rosewood px-1.5 py-0.5 text-center text-[11px] font-bold leading-none text-white">{{ cart_count|default:0 }}</span>
+      </a>
+      <button type="button" data-mobile-menu-button class="grid h-10 w-10 place-items-center rounded-full text-slate-700 transition hover:bg-slate-100 lg:hidden" aria-expanded="false" aria-label="Open menu">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <div data-mobile-menu class="hidden border-t border-slate-200 bg-white px-4 py-4 lg:hidden">
+    <form action="{{ products_url|default:'/products/' }}" method="get" class="mb-4 flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2">
+      <input name="q" value="{{ request.GET.q }}" class="w-full bg-transparent text-sm outline-none" placeholder="Search products">
+    </form>
+    <div class="grid gap-2">
+      <a class="rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50" href="{{ home_url|default:'/' }}">Home</a>
+      <a class="rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50" href="{{ products_url|default:'/products/' }}">Shop</a>
+      <a class="rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50" href="{{ products_url|default:'/products/' }}?sort=best">Best Sellers</a>
+      <a class="rounded-xl px-3 py-2 text-sm font-medium hover:bg-slate-50" href="#newsletter">Offers</a>
+    </div>
+  </div>
+</header>
