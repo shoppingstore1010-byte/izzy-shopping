@@ -1,0 +1,452 @@
+{% extends 'store/base.html' %}
+
+{% block title %}{{ product.name }} - {{ site_settings.site_name }}{% endblock %}
+{% block meta_description %}{{ product.short_description|default:product.description|truncatewords:30 }}{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<div class="bg-gray-100 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex text-sm text-gray-600">
+            <a href="{% url 'home' %}" class="hover:text-accent">Home</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'product_list' %}" class="hover:text-accent">Products</a>
+            {% if product.category %}
+            <span class="mx-2">/</span>
+            <a href="{% url 'product_list' %}?category={{ product.category.slug }}" class="hover:text-accent">{{ product.category.name }}</a>
+            {% endif %}
+            <span class="mx-2">/</span>
+            <span class="text-gray-900">{{ product.name }}</span>
+        </nav>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Product Images -->
+        <div class="space-y-4">
+            <div class="aspect-square bg-white rounded-2xl shadow-lg overflow-hidden">
+                {% if product.first_image %}
+                <img id="main-image" src="{{ product.first_image.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-400 text-xl">No Image</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            {% if product.images.count > 1 %}
+            <div class="grid grid-cols-4 gap-4">
+                {% for image in product.images.all %}
+                <div class="aspect-square bg-white rounded-lg shadow overflow-hidden cursor-pointer hover:ring-2 ring-accent transition-all" onclick="changeMainImage('{{ image.image.url }}')">
+                    <img src="{{ image.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Product Info -->
+        <div>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
+            
+            <!-- Rating -->
+            <div class="flex items-center mb-4">
+                <div class="flex text-gold">
+                    {% for i in "12345" %}
+                    {% if forloop.counter <= product.average_rating %}
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                    {% else %}
+                    <svg class="w-5 h-5 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                <span class="text-gray-600 ml-2">{{ product.review_count }} reviews</span>
+            </div>
+            
+            <!-- Price -->
+            <div class="mb-6">
+                <span class="text-4xl font-bold text-accent">₹{{ product.price }}</span>
+                {% if product.compare_price %}
+                <span class="text-xl text-gray-400 line-through ml-3">₹{{ product.compare_price }}</span>
+                <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold ml-3">
+                    Save {{ product.discount_percentage }}%
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- Stock Status -->
+            <div class="mb-6">
+                {% if product.is_in_stock %}
+                <div class="flex items-center text-green-600">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                    <span class="font-semibold">In Stock ({{ product.stock }} available)</span>
+                </div>
+                {% else %}
+                <div class="flex items-center text-red-600">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg>
+                    <span class="font-semibold">Out of Stock</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-3">Description</h3>
+                <p class="text-gray-600 leading-relaxed">{{ product.description|linebreaks }}</p>
+            </div>
+            
+            <!-- Order Form -->
+            <div id="order-form" class="bg-gray-50 rounded-2xl p-6 shadow-lg">
+                <h3 class="text-xl font-bold mb-6">Order Now - COD Available</h3>
+                
+                <form id="order-form-element" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                        <input type="text" name="customer_name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Enter your full name">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Number *</label>
+                        <input type="tel" name="customer_phone" required pattern="[0-9]{10}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="10-digit mobile number">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Delivery Address *</label>
+                        <textarea name="customer_address" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Enter your complete delivery address"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                            <input type="text" name="customer_city" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="City">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                            <input type="text" name="customer_state" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="State">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                        <input type="text" name="customer_pincode" pattern="[0-9]{6}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="6-digit pincode">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Order Notes (Optional)</label>
+                        <textarea name="customer_notes" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Any special instructions"></textarea>
+                    </div>
+                    
+                    <button type="submit" id="submit-order-btn" class="w-full bg-accent text-white py-4 rounded-lg font-semibold text-lg hover:bg-red-600 transition-colors flex items-center justify-center">
+                        <span>Place Order - Cash on Delivery</span>
+                    </button>
+                    
+                    <p class="text-center text-sm text-gray-500">
+                        🔒 Your order is safe. No payment required now.
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Details -->
+    <div class="mt-16 bg-white rounded-2xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold mb-6">Product Details</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% if product.brand %}
+            <div class="flex justify-between py-3 border-b">
+                <span class="text-gray-600">Brand</span>
+                <span class="font-semibold">{{ product.brand }}</span>
+            </div>
+            {% endif %}
+            {% if product.sku %}
+            <div class="flex justify-between py-3 border-b">
+                <span class="text-gray-600">SKU</span>
+                <span class="font-semibold">{{ product.sku }}</span>
+            </div>
+            {% endif %}
+            {% if product.condition %}
+            <div class="flex justify-between py-3 border-b">
+                <span class="text-gray-600">Condition</span>
+                <span class="font-semibold">{{ product.get_condition_display }}</span>
+            </div>
+            {% endif %}
+            {% if product.weight %}
+            <div class="flex justify-between py-3 border-b">
+                <span class="text-gray-600">Weight</span>
+                <span class="font-semibold">{{ product.weight }} kg</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Reviews -->
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold mb-8">Customer Reviews</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Review Form -->
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h3 class="text-xl font-bold mb-6">Write a Review</h3>
+                <form id="review-form" class="space-y-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                        <input type="text" name="customer_name" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
+                        <input type="tel" name="customer_phone" pattern="[0-9]{10}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rating *</label>
+                        <div class="flex space-x-2" id="rating-stars">
+                            {% for i in "12345" %}
+                            <button type="button" class="text-3xl text-gray-300 hover:text-gold focus:outline-none" data-rating="{{ forloop.counter }}" onclick="setRating({{ forloop.counter }})">★</button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="rating-input" value="5">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Review Title</label>
+                        <input type="text" name="title" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Your Review *</label>
+                        <textarea name="review" required rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent" placeholder="Share your experience with this product"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Add Photos (Optional)</label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <input type="file" name="photo_1" accept="image/*" class="hidden" id="photo-1" onchange="previewImage(this, 'preview-1')">
+                            <label for="photo-1" class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-accent transition-colors">
+                                <div id="preview-1" class="text-center">
+                                    <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span class="text-sm text-gray-500">Add Photo</span>
+                                </div>
+                            </label>
+                            
+                            <input type="file" name="photo_2" accept="image/*" class="hidden" id="photo-2" onchange="previewImage(this, 'preview-2')">
+                            <label for="photo-2" class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-accent transition-colors">
+                                <div id="preview-2" class="text-center">
+                                    <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span class="text-sm text-gray-500">Add Photo</span>
+                                </div>
+                            </label>
+                            
+                            <input type="file" name="photo_3" accept="image/*" class="hidden" id="photo-3" onchange="previewImage(this, 'preview-3')">
+                            <label for="photo-3" class="aspect-square border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-accent transition-colors">
+                                <div id="preview-3" class="text-center">
+                                    <svg class="w-8 h-8 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    <span class="text-sm text-gray-500">Add Photo</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                        Submit Review
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Reviews List -->
+            <div class="space-y-6">
+                {% for review in reviews %}
+                <div class="bg-white rounded-2xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="font-semibold">{{ review.customer_name }}</h4>
+                            <div class="flex text-gold text-sm">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                                {% else %}
+                                <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-500">{{ review.created_at|date:"M d, Y" }}</span>
+                    </div>
+                    
+                    {% if review.title %}
+                    <h5 class="font-semibold mb-2">{{ review.title }}</h5>
+                    {% endif %}
+                    
+                    <p class="text-gray-600 mb-4">{{ review.review }}</p>
+                    
+                    {% if review.photo_1 or review.photo_2 or review.photo_3 %}
+                    <div class="grid grid-cols-3 gap-2">
+                        {% if review.photo_1 %}
+                        <img src="{{ review.photo_1.url }}" alt="Review photo" class="w-full h-24 object-cover rounded-lg">
+                        {% endif %}
+                        {% if review.photo_2 %}
+                        <img src="{{ review.photo_2.url }}" alt="Review photo" class="w-full h-24 object-cover rounded-lg">
+                        {% endif %}
+                        {% if review.photo_3 %}
+                        <img src="{{ review.photo_3.url }}" alt="Review photo" class="w-full h-24 object-cover rounded-lg">
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="bg-white rounded-2xl shadow-lg p-8 text-center text-gray-500">
+                    <p>No reviews yet. Be the first to review!</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-16">
+        <h2 class="text-2xl font-bold mb-8">Related Products</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {% for related in related_products %}
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+                <div class="relative overflow-hidden aspect-square">
+                    {% if related.first_image %}
+                    <img src="{{ related.first_image.image.url }}" alt="{{ related.name }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                    {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-400">No Image</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="p-5">
+                    <h3 class="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">{{ related.name }}</h3>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-2xl font-bold text-accent">₹{{ related.price }}</span>
+                    </div>
+                    
+                    <a href="{% url 'product_detail' related.slug %}" class="block w-full bg-primary text-white text-center py-3 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeMainImage(url) {
+    document.getElementById('main-image').src = url;
+}
+
+function setRating(rating) {
+    document.getElementById('rating-input').value = rating;
+    const stars = document.querySelectorAll('#rating-stars button');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.remove('text-gray-300');
+            star.classList.add('text-gold');
+        } else {
+            star.classList.remove('text-gold');
+            star.classList.add('text-gray-300');
+        }
+    });
+}
+
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover rounded-lg">`;
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Order form submission
+document.getElementById('order-form-element').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submit-order-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...';
+    
+    const formData = new FormData(this);
+    
+    fetch('{% url "place_order" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<span>Place Order - Cash on Delivery</span>';
+            alert(data.error || 'Something went wrong. Please try again.');
+        }
+    })
+    .catch(error => {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Place Order - Cash on Delivery</span>';
+        alert('Something went wrong. Please try again.');
+    });
+});
+
+// Review form submission
+document.getElementById('review-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    
+    fetch('{% url "submit_review" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCSRFToken()
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Thank you for your review! It will be published after approval.');
+            this.reset();
+            setRating(5);
+        } else {
+            alert(data.error || 'Something went wrong');
+        }
+    });
+});
+
+// Show sticky button on mobile
+window.addEventListener('scroll', function() {
+    const stickyBtn = document.getElementById('sticky-order-btn');
+    const orderForm = document.getElementById('order-form');
+    
+    if (stickyBtn && orderForm) {
+        if (window.scrollY > 500) {
+            stickyBtn.classList.remove('hidden');
+        } else {
+            stickyBtn.classList.add('hidden');
+        }
+    }
+});
+</script>
+{% endblock %}

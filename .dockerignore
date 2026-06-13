@@ -25,12 +25,13 @@ wheels/
 .DS_Store
 *.sqlite3
 *.db
-staticfiles/*
-!staticfiles/.gitkeep
+staticfiles/
 media/
 .env
 .venv
 .vscode/
 .idea/
 *.log
-test_app.py
+.git
+.gitignore
+README.md

@@ -1,0 +1,157 @@
+{% extends 'store/base.html' %}
+
+{% block title %}Products - {{ site_settings.site_name }}{% endblock %}
+
+{% block content %}
+<div class="bg-primary text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-3xl md:text-4xl font-bold mb-4">Our Products</h1>
+        <p class="text-gray-300">Discover our premium collection</p>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search -->
+            <div class="w-full md:w-1/3">
+                <input type="text" id="search-input" value="{{ search|default:'' }}" placeholder="Search products..." class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+            </div>
+            
+            <!-- Category Filter -->
+            <div class="w-full md:w-1/4">
+                <select id="category-filter" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.slug }}" {% if current_category == category.slug %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Sort -->
+            <div class="w-full md:w-1/4">
+                <select id="sort-filter" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent">
+                    <option value="-created_at" {% if sort == '-created_at' %}selected{% endif %}>Newest First</option>
+                    <option value="price_low" {% if sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                    <option value="name" {% if sort == 'name' %}selected{% endif %}>Name A-Z</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Products Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for product in products %}
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
+            <div class="relative overflow-hidden aspect-square">
+                {% if product.first_image %}
+                <img src="{{ product.first_image.image.url }}" alt="{{ product.name }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-400">No Image</span>
+                </div>
+                {% endif %}
+                
+                {% if product.discount_percentage > 0 %}
+                <div class="absolute top-4 left-4 bg-accent text-white px-3 py-1 rounded-full text-sm font-semibold">
+                    {{ product.discount_percentage }}% OFF
+                </div>
+                {% endif %}
+                
+                {% if not product.is_in_stock %}
+                <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">Out of Stock</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="p-5">
+                <h3 class="font-semibold text-lg text-gray-900 mb-2 line-clamp-2">{{ product.name }}</h3>
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <span class="text-2xl font-bold text-accent">₹{{ product.price }}</span>
+                        {% if product.compare_price %}
+                        <span class="text-sm text-gray-400 line-through ml-2">₹{{ product.compare_price }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="flex items-center mb-4">
+                    <div class="flex text-gold">
+                        {% for i in "12345" %}
+                        {% if forloop.counter <= product.average_rating %}
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        {% else %}
+                        <svg class="w-4 h-4 fill-current text-gray-300" viewBox="0 0 20 20"><path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/></svg>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="text-sm text-gray-500 ml-2">({{ product.review_count }})</span>
+                </div>
+                
+                <a href="{% url 'product_detail' product.slug %}" class="block w-full bg-primary text-white text-center py-3 rounded-lg font-semibold hover:bg-secondary transition-colors">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12 text-gray-500">
+            <p>No products found.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if products.has_other_pages %}
+    <div class="flex justify-center mt-12">
+        <nav class="flex space-x-2">
+            {% if products.has_previous %}
+            <a href="?page={{ products.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">Previous</a>
+            {% endif %}
+            
+            {% for num in products.paginator.page_range %}
+            {% if products.number == num %}
+            <span class="px-4 py-2 bg-accent text-white rounded-lg">{{ num }}</span>
+            {% else %}
+            <a href="?page={{ num }}{% if search %}&search={{ search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">{{ num }}</a>
+            {% endif %}
+            {% endfor %}
+            
+            {% if products.has_next %}
+            <a href="?page={{ products.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}" class="px-4 py-2 bg-white rounded-lg shadow hover:bg-gray-50">Next</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.getElementById('search-input').addEventListener('change', function() {
+    const url = new URL(window.location);
+    if (this.value) {
+        url.searchParams.set('search', this.value);
+    } else {
+        url.searchParams.delete('search');
+    }
+    window.location = url;
+});
+
+document.getElementById('category-filter').addEventListener('change', function() {
+    const url = new URL(window.location);
+    if (this.value) {
+        url.searchParams.set('category', this.value);
+    } else {
+        url.searchParams.delete('category');
+    }
+    window.location = url;
+});
+
+document.getElementById('sort-filter').addEventListener('change', function() {
+    const url = new URL(window.location);
+    url.searchParams.set('sort', this.value);
+    window.location = url;
+});
+</script>
+{% endblock %}
